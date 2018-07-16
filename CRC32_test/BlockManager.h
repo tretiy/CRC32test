@@ -19,7 +19,7 @@ public:
     {
         blocks.clear();
     }
-    Block getBlock(size_t index) const
+    Block getBlock(size_t index)
     {
         return blocks.at(index);
     }
@@ -36,6 +36,10 @@ public:
     int getBlockSize() const
     {
         return blckSize;
+    }
+    int getBlocksCount() const
+    {
+        return blckCount;
     }
 
     std::atomic<bool> generateFinished{false};

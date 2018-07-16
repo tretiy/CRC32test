@@ -7,14 +7,32 @@
 #include <list>
 #include "Block.h"
 #include "BlockManager.h"
+#include "crc32c\crc32c.h"
 
+uint32_t calculateCRC(const Block& block)
+{
+    return crc32c::Crc32c(block.data.data(), block.data.size());
+}
 
-void GenerateAndAddBlock(BlockManager& manager)
+void GenerateBlocks_threadFunc(BlockManager& manager)
 {
     while(!manager.generateFinished)
     {
         manager.pushBlock(Block(manager.getBlockSize()));
         std::this_thread::yield();
+    }
+}
+
+void Calculate_threadFunc(BlockManager& manager)
+{
+    auto thread_id = std::this_thread::get_id();
+    auto curBlockIdx = 0;
+    
+    while(curBlockIdx < manager.getBlocksCount())
+    {
+        auto crc32 = calculateCRC(manager.getBlock(curBlockIdx));
+
+        ++curBlockIdx;
     }
 }
 
@@ -46,7 +64,7 @@ int main(int argc, char* argv[])
         BlockManager manager(blockSize, blocksCount);
         std::list<std::thread> genthreads;
         for(auto i=0;i<generatorsCount;++i)
-            genthreads.emplace_back(GenerateAndAddBlock, std::ref(manager));
+            genthreads.emplace_back(GenerateBlocks_threadFunc, std::ref(manager));
         std::for_each(genthreads.begin(), genthreads.end(), [](auto&& thread)
         {
             thread.join();
