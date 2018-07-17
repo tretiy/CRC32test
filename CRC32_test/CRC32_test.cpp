@@ -11,29 +11,31 @@
 
 uint32_t calculateCRC(const Block& block)
 {
-    return crc32c::Crc32c(block.data.data(), block.data.size());
+    return crc32c::Crc32c(block.getData().data(), block.getData().size());
 }
 
 void GenerateBlocks_threadFunc(BlockManager& manager)
 {
+    auto Idx = 0;
     while(!manager.generateFinished)
     {
         manager.pushBlock(Block(manager.getBlockSize()));
+        ++Idx;
         std::this_thread::yield();
     }
+    std::cout<< "gen exit processed " << Idx << "\n";
 }
 
 void Calculate_threadFunc(BlockManager& manager)
 {
-    auto thread_id = std::this_thread::get_id();
     auto curBlockIdx = 0;
-    
     while(curBlockIdx < manager.getBlocksCount())
     {
-        auto crc32 = calculateCRC(manager.getBlock(curBlockIdx));
-
+        manager.setBlockCrc(curBlockIdx, calculateCRC(manager.getBlock(curBlockIdx)));
         ++curBlockIdx;
+        std::this_thread::yield();
     }
+    std::cout<< "calc exit processed " << curBlockIdx << "\n";
 }
 
 int main(int argc, char* argv[])
@@ -62,17 +64,34 @@ int main(int argc, char* argv[])
         size_t blocksCount = result["blockscount"].as<size_t>();
 
         BlockManager manager(blockSize, blocksCount);
+        //gen threads
         std::list<std::thread> genthreads;
         for(auto i=0;i<generatorsCount;++i)
             genthreads.emplace_back(GenerateBlocks_threadFunc, std::ref(manager));
-        std::for_each(genthreads.begin(), genthreads.end(), [](auto&& thread)
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        //calc threads
+        std::list<std::thread> calcthreads;
+        for(auto i=0;i<validatorsCount;++i)
+            calcthreads.emplace_back(Calculate_threadFunc, std::ref(manager));
+
+        auto joinThreads = [](auto&& threads)
         {
-            thread.join();
-        });
+            std::for_each(threads.begin(), threads.end(), [](auto&& thread)
+            {
+                thread.join();
+            });
+        };
+        joinThreads(genthreads);
+      
+        joinThreads(calcthreads);
     }
     catch(cxxopts::OptionException& ex)
     {
         std::cout<< ex.what();
+    }
+    catch(...)
+    {
+        std::cout <<"smth went wrong...\n";
     }
     int i;
     std::cout<<"finished\n";
