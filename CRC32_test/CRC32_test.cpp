@@ -45,11 +45,11 @@ int main(int argc, char* argv[])
     {
         cxxopts::Options options("CRC32", "Multithreaded crc32 calculator");
         options.allow_unrecognised_options().add_options()
-            ("g,generators", "Number of threads to generate blocks", cxxopts::value<int>())
-            ("c,crccalculators", "Number of threads to calculate crc32", cxxopts::value<int>())
+            ("g,generators", "Number of threads to generate blocks", cxxopts::value<unsigned int>())
+            ("c,crccalculators", "Number of threads to calculate crc32", cxxopts::value<unsigned int>())
             ("s,blocksize", "Block size in bytes", cxxopts::value<size_t>())
             ("b,blockscount", "Number of blocks", cxxopts::value<size_t>())
-            ("e,emulate", "Emulate bad block each n-th block", cxxopts::value<int>());
+            ("e,emulate", "Emulate bad block each n-th block", cxxopts::value<unsigned int>());
 
         auto result = options.parse(argc, argv);
         if (!result["generators"].count()
@@ -60,15 +60,22 @@ int main(int argc, char* argv[])
             std::cout << options.help();
             return -1;
         }
-        int generatorsCount = result["generators"].as<int>();
-        int validatorsCount = result["crccalculators"].as<int>();
-        size_t blockSize = result["blocksize"].as<size_t>();
-        size_t blocksCount = result["blockscount"].as<size_t>();
+        auto generatorsCount = result["generators"].as<unsigned int>();
+        auto validatorsCount = result["crccalculators"].as<unsigned int>();
+        auto blockSize = result["blocksize"].as<size_t>();
+        auto blocksCount = result["blockscount"].as<size_t>();
+        //validate options
+        if(!generatorsCount || !validatorsCount || !blockSize || !blocksCount)
+        {
+            std::cout<<"params should be greater than 0\n";
+            std::cout << options.help();
+            return -1;
+        }
 
         BlockManager manager(blockSize, blocksCount, validatorsCount);
         if (result["emulate"].count())
         {
-            manager.setBadBlockEmulation(result["emulate"].as<int>());
+            manager.setBadBlockEmulation(result["emulate"].as<unsigned int>());
         }
         //gen threads
         std::list<std::thread> genthreads;
