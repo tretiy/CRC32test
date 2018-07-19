@@ -48,7 +48,8 @@ int main(int argc, char* argv[])
             ("g,generators", "Number of threads to generate blocks", cxxopts::value<int>())
             ("c,crccalculators", "Number of threads to calculate crc32", cxxopts::value<int>())
             ("s,blocksize", "Block size in bytes", cxxopts::value<size_t>())
-            ("b,blockscount", "Number of blocks", cxxopts::value<size_t>());
+            ("b,blockscount", "Number of blocks", cxxopts::value<size_t>())
+            ("e,emulate", "Emulate bad block each n-th block", cxxopts::value<int>());
 
         auto result = options.parse(argc, argv);
         if (!result["generators"].count()
@@ -65,6 +66,10 @@ int main(int argc, char* argv[])
         size_t blocksCount = result["blockscount"].as<size_t>();
 
         BlockManager manager(blockSize, blocksCount, validatorsCount);
+        if (result["emulate"].count())
+        {
+            manager.setBadBlockEmulation(result["emulate"].as<int>());
+        }
         //gen threads
         std::list<std::thread> genthreads;
         for (auto i = 0; i < generatorsCount; ++i)

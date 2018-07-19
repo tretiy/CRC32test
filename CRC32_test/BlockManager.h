@@ -28,6 +28,7 @@ class BlockManager
     size_t offset = 0;
     size_t removeBlocksCount = 10000;
     std::basic_fstream<unsigned char> badBlocks;
+    unsigned int badBlockEmulation = 0;
 public:
     std::atomic<bool> generateFinished{false};
 
@@ -49,7 +50,7 @@ public:
     const Block& getBlock(size_t index)
     {
         std::lock_guard<std::mutex> lock(insertMutex);
-        return blocks.at(index - offset);
+        return blocks[index - offset];
     }
 
     void pushBlock(Block&& block)
@@ -65,8 +66,7 @@ public:
 
     void DumpBlock(size_t index)
     {
-        auto block = getBlock(index);
-        badBlocks.write(block.getData().data(), blckSize);
+        badBlocks.write(blocks[index - offset].getData().data(), blckSize);
     }
 
     void CheckProcessed(size_t index)
@@ -127,7 +127,8 @@ public:
         {
             crcValues[index] = {calcCrc, 0};
         }
-        else if (crcValues[index].crc != calcCrc && badBlocksIdxs.count(index) == 0)
+        else if ((crcValues[index].crc != calcCrc && badBlocksIdxs.count(index) == 0) 
+          || (index && badBlockEmulation && index % badBlockEmulation == 0))
         {
             DumpBlock(index);
             badBlocksIdxs.insert(index);
@@ -150,5 +151,10 @@ public:
     bool isBlockAvailable(size_t idx) const
     {
         return idx < availableBlocks;
+    }
+    
+    void setBadBlockEmulation(unsigned int eachNth)
+    {
+        badBlockEmulation = eachNth;
     }
 };
