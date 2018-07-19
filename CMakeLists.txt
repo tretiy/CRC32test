@@ -4,10 +4,9 @@
 cmake_minimum_required (VERSION 3.8)
 
 project ("CRC32_test")
-
-set(CRC32C_BUILD_BENCHMARKS 0)
-set(CRC32C_BUILD_TESTS 0)
-set(CRC32C_USE_GLOG 0)
+option(CRC32C_BUILD_BENCHMARKS OFF)
+option(CRC32C_BUILD_TESTS OFF)
+option(CRC32C_USE_GLOG OFF)
 # Include sub-projects.
 add_subdirectory("3rdparty")
 add_subdirectory ("CRC32_test")
