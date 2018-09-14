@@ -1,3 +1,4 @@
 language: C++
 install: true
 before_script: cmake .
+script: make
