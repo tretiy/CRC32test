@@ -3,6 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+set (CMAKE_CXX_STANDARD 11)
 project ("CRC32_test")
 option(CRC32C_BUILD_BENCHMARKS OFF)
 option(CRC32C_BUILD_TESTS OFF)
