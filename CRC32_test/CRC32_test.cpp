@@ -8,7 +8,7 @@
 #include <chrono>
 #include "Block.h"
 #include "BlockManager.h"
-#include "crc32c\crc32c.h"
+#include "crc32c/crc32c.h"
 
 uint32_t calculateCRC(const Block& block)
 {
