@@ -7,3 +7,5 @@ project ("3rdparty")
 
 # Include sub-projects.
 add_subdirectory("crc32c-master")
+set( gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll" FORCE)
+add_subdirectory("gtest")

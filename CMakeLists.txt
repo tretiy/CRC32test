@@ -14,4 +14,4 @@ option(CRC32C_BUILD_TESTS OFF)
 option(CRC32C_USE_GLOG OFF)
 # Include sub-projects.
 add_subdirectory("3rdparty")
-add_subdirectory ("CRC32_test")
+add_subdirectory("CRC32_test")
