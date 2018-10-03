@@ -50,4 +50,4 @@ before_install:
    - eval "${MATRIX_EVAL}"
 
 before_script: cmake .
-script: make && ctest -v
+script: make && ctest . -VV
